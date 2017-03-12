@@ -4,7 +4,7 @@ A simple node.js server for the ECTOR concept-network based AI.
 
 ##Installing:
 
-Requires [https://nodejs.org/en/](node.js).
+Requires (node.js)[https://nodejs.org/en/].
 
 Dependencies:
 * Express: `npm install express --save`
