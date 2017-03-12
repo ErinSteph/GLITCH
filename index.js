@@ -3,23 +3,35 @@ Express: $ npm install express --save
 Ector: $ npm install ector
 Merge: npm install merge --save
 MySQL: npm install mysql
+Discordio: npm install discord.io
 **---------------------*/
 
 var express = require('express')
 var app = express()
 var Ector = require('ector')
-const ector = new Ector("GLITCH", "User")
+const ector = new Ector("Glitch", "User")
 const fs = require('fs')
 var merge = require('merge')
 var mysql = require('mysql')
+var Discord = require('discord.io')
+
+
+var table = 'glitch' // name of the database table
+var token = '' //bot token
+var botid = 290551071787450368 // bot id
 
 //-------- lib --------//
+
+var bot = new Discord.Client({
+    token: token,
+    autorun: true
+});
 
 var pool  = mysql.createPool({
   connectionLimit : 10,
   host            : 'localhost',
-  user            : 'root',
-  password        : 'erinxnoot',
+  user            : '',
+  password        : '',
   database        : 'GLITCH'
 })
 
@@ -45,9 +57,9 @@ function time(){
 function save(){
   pool.getConnection(function(err, connection){
     ready = JSON.stringify(ector.cn)
-    var sql = "UPDATE cn SET ?? = ? WHERE ?? = ?";
-    var inserts = ['data', ready , 'id', 'concept'];
-    sql = mysql.format(sql, inserts);
+    var sql = "UPDATE cn SET ?? = ? WHERE ?? = ?"
+    var inserts = ['data', ready , 'id', table]
+    sql = mysql.format(sql, inserts)
     connection.query(sql, function (error, results, fields){
       if (error) throw error
     })
@@ -57,32 +69,30 @@ function save(){
 function load(){
   var loadcn;
   pool.getConnection(function(err, connection){
-    connection.query('SELECT * FROM `cn` WHERE `id`="concept"', function (error, results, fields){
-      if(error){
-        throw error
-      }
+    connection.query('SELECT * FROM `cn` WHERE `id`=?', [table], function (error, results, fields){
+      if (error) throw error
       if(results.length > 0){
         loadcn = JSON.parse(results[0].data)
         ector.cns = {}
         ector.cn = merge(ector.cn, loadcn)
+        console.log(time() + ' <> ' + ' GLITCH concept network storage loaded and ready.')
       }else{
         oldcn = '[]'
         loadcn = JSON.parse(oldcn)
         ector.cns = {}
         ector.cn = merge(ector.cn, loadcn)
         var sql = "INSERT INTO cn SET ?";
-        var q = [{id: 'concept', data: oldcn}]
+        var q = [{id: table, data: oldcn}]
         sql = mysql.format(sql, q);
         connection.query(sql, function (error, results, fields) {
           if (error) throw error
-          console.log(time() + ' <> ' + ' GLITCH concept network storage ready.')
+          console.log(time() + ' <> ' + ' GLITCH concept network storage created and ready.')
         })
       }
       connection.release()
     })
   })
   ector.setUser("User")
-  console.log(time() + ' <> ' + ' GLITCH concept network online.')  
 }
 
 //--------- init ---------//
@@ -92,6 +102,28 @@ load()
 
 //--------- app ---------//
 
+bot.on('message', function(user, userID, channelID, message, event) {
+  console.log(time() + ' <' + user + '> ' + message)
+  ector.setUser(user)
+  ector.addEntry(message)
+  ector.linkNodesToLastSentence(previousResponseNodes)
+  var response = ector.generateResponse()
+  previousResponseNodes = response.nodes
+  save()
+  if(userID != 290551071787450368){
+    bot.sendMessage({
+      to: channelID,
+      message: response.sentence
+    });
+  }
+});
+
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+});
+
 app.get('/:name/:data', function (req, res) {
   var name = decodeURIComponent(req.params.name)
   var msg = decodeURIComponent(req.params.data)
@@ -100,7 +132,7 @@ app.get('/:name/:data', function (req, res) {
   ector.addEntry(msg)
   ector.linkNodesToLastSentence(previousResponseNodes)
   var response = ector.generateResponse()
-  console.log(time() + ' <GLITCH> ' + response.sentence)
+  console.log(time() + ' <Glitch> ' + response.sentence)
   previousResponseNodes = response.nodes
   res.send(response.sentence)
   save()
