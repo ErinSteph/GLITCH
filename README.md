@@ -1,8 +1,8 @@
-#GLITCH
+# GLITCH
 
 A node.js implementation of the ECTOR concept network AI as a Discord chatbot.
 
-##Installing:
+## Installing:
 
 Requires [node.js](https://nodejs.org/en/).
 
