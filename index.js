@@ -18,7 +18,6 @@ var Discord = require('discord.io')
 
 var table = 'glitch' // name of the database table
 var token = '' //bot token
-var botid = 290551071787450368 // bot id
 
 //-------- lib --------//
 
@@ -110,7 +109,7 @@ bot.on('message', function(user, userID, channelID, message, event) {
   var response = ector.generateResponse()
   previousResponseNodes = response.nodes
   save()
-  if(userID != 290551071787450368){
+  if(userID != bot.id){
     bot.sendMessage({
       to: channelID,
       message: response.sentence
